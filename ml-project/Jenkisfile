@@ -1,0 +1,35 @@
+pipeline {
+    agent { label 'master' }
+    environment {
+        appName = 'variable'
+    }
+    stages {
+        stage('Train Model') {
+            steps {
+                script {
+                    sh "train.py"
+                }
+            }
+        }
+        stage('Deploy FastAPI') {
+            steps {
+                script {
+                    sh "docker build -t my-model-api:latest"
+                    sh "docker run -d --name my-model-api-container -p 8000:8000 my-model-api"
+                }
+            }
+        }
+    }
+    post {
+        always {
+            deleteDir()
+            sh "echo 'Cleaning up workspace'"
+        }
+        success {
+            sh "echo 'Deployment successful'"
+        }
+        failure {
+            sh "echo 'Deployment failed'"
+        }
+    }
+}
