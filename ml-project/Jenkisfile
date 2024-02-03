@@ -14,7 +14,7 @@ pipeline {
         stage('Deploy FastAPI') {
             steps {
                 script {
-                    sh "docker build -t my-model-api:latest"
+                    sh "docker build -t my-model-api:latest ml-project/."
                     sh "docker run -d --name my-model-api-container -p 8000:8000 my-model-api"
                 }
             }
