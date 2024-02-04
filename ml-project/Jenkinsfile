@@ -7,14 +7,18 @@ pipeline {
         stage('Train Model') {
             steps {
                 script {
-                    sh "python3 ml-project/train.py"
+                    // Build the Docker image for training
+                    sh "docker build -t my-model-api:latest ml-project/."
+                    
+                    // Run the Docker container to execute train.py
+                    // Note: Adjust the command as necessary if your Dockerfile specifies a different WORKDIR or if train.py requires specific arguments
+                    sh "docker run --rm my-model-api:latest python3 train.py"
                 }
             }
         }
         stage('Deploy FastAPI') {
             steps {
                 script {
-                    sh "docker build -t my-model-api:latest ml-project/."
                     sh "docker run -d --name my-model-api-container -p 8000:8000 my-model-api"
                 }
             }
