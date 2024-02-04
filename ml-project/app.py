@@ -32,7 +32,7 @@ def upload_excel(file: UploadFile = File(...)):
             df = pd.read_excel(temp_file)
 
             # Cargar el modelo
-            loaded_model = joblib.load('iris_model.joblib')
+            loaded_model = joblib.load('train/iris_model.joblib')
 
             # Realizar predicciones con el modelo cargado
             new_predictions = loaded_model.predict(df.values)

@@ -1,21 +1,25 @@
 pipeline {
+    // Define que este pipeline puede ejecutarse en cualquier agente disponible
     agent any
+    // Define variables de entorno utilizables en todo el pipeline
     environment {
         appName = 'variable'
     }
+    // Define las etapas del pipeline
     stages {
+        // Etapa para construir la imagen Docker
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build the Docker image for training
                     sh "docker build -t my-model-api:latest ml-project/."
                 }
             }
         }
+        // Etapa para desplegar FastAPI
         stage('Deploy FastAPI') {
             steps {
                 script {
-                    // Check if the container exists and conditionally handle the deployment
+                    // Verifica si el contenedor existe y maneja condicionalmente el despliegue
                     sh '''
                     if docker ps -a --format '{{.Names}}' | grep -q my-model-api-container; then
                         echo "Container exists. Removing and re-running..."
@@ -29,14 +33,18 @@ pipeline {
             }
         }
     }
+    // Define acciones que se ejecutan después de las etapas principales del pipeline
     post {
+        // Se ejecuta siempre después de las etapas, independientemente del resultado
         always {
-            deleteDir()
+            deleteDir() // Elimina el directorio de trabajo actual
             sh "echo 'Cleaning up workspace'"
         }
+        // Se ejecuta solo si el pipeline fue exitoso
         success {
             sh "echo 'Deployment successful'"
         }
+        // Se ejecuta solo si el pipeline falló
         failure {
             sh "echo 'Deployment failed'"
         }
