@@ -19,7 +19,7 @@ pipeline {
         stage('Deploy FastAPI') {
             steps {
                 script {
-                    sh "docker run -d --name my-model-api-container -p 8000:8000 my-model-api"
+                    sh "docker run --rm -d --name my-model-api-container -p 8000:8000 my-model-api"
                 }
             }
         }
