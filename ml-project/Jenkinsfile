@@ -9,17 +9,22 @@ pipeline {
                 script {
                     // Build the Docker image for training
                     sh "docker build -t my-model-api:latest ml-project/."
-                    
-                    // Run the Docker container to execute train.py
-                    // Note: Adjust the command as necessary if your Dockerfile specifies a different WORKDIR or if train.py requires specific arguments
-                    // sh "docker run --rm my-model-api:latest python3 train.py"
                 }
             }
         }
         stage('Deploy FastAPI') {
             steps {
                 script {
-                    sh "docker run --rm -d --name my-model-api-container -p 8000:8000 my-model-api"
+                    // Check if the container exists and conditionally handle the deployment
+                    sh '''
+                    if docker ps -a --format '{{.Names}}' | grep -q my-model-api-container; then
+                        echo "Container exists. Removing and re-running..."
+                        docker rm -f my-model-api-container; docker run --rm -d --name my-model-api-container -p 8000:8000 my-model-api
+                    else
+                        echo "Container does not exist. Running..."
+                        docker run --rm -d --name my-model-api-container -p 8000:8000 my-model-api
+                    fi
+                    '''
                 }
             }
         }
