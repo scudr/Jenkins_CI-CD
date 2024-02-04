@@ -26,6 +26,9 @@ RUN apt-get update -qq \
 # Instalar AWS CLI para interactuar con los Servicios Web de Amazon
 RUN apt install awscli -y
 
+# Instalar Python3 y pip
+RUN apt-get install -y python3 python3-pip
+
 # Instalar el instalador de paquetes de Python3, pip
 RUN apt-get install python3-pip -y
 
