@@ -31,6 +31,8 @@ def upload_excel(file: UploadFile = File(...)):
             # Leer el archivo Excel usando pandas y almacenarlo en un DataFrame
             df = pd.read_excel(temp_file)
 
+            ##### MODIFICACIONES V2 #########
+
             # Cargar el modelo
             loaded_model = joblib.load('train/iris_model.joblib')
 
