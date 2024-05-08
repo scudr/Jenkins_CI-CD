@@ -6,7 +6,7 @@ pool:
 
 variables:
   imageName: 'test-api'  # Replace with your image name
-  containerRegistry: 'test-api-container.azurecr.io'  # Replace with your Azure Container Registry name
+  containerRegistry: 'testcontainerdmc.azurecr.io'  # Replace with your Azure Container Registry name
   containerRegistryUsername: '$(acrUsername)'  # Set these as pipeline secrets
   containerRegistryPassword: '$(acrPassword)'
   azureSubscription: '$(azureSubscription)'
