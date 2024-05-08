@@ -1,48 +1,74 @@
 trigger:
-- main
+  branches:
+    include:
+      - main
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  imageName: 'test-api'  # Replace with your image name
-  containerRegistry: 'testcontainerdmc.azurecr.io'  # Replace with your Azure Container Registry name
-  containerRegistryUsername: '$(acrUsername)'  # Set these as pipeline secrets
-  containerRegistryPassword: '$(acrPassword)'
-  azureSubscription: '$(azureSubscription)'
-  resource-group: '$(resource-group)'
+  # Replace these variables with your actual values
+  RESOURCE_GROUP: 'dmc-group'
+  ACR_NAME: 'testcontainerdmc'
+  REPOSITORY_NAME: 'my-test-api'
+  IMAGE_TAG: 'latest'
+  AZURE_SUBSCRIPTION_ID: '37520400-632e-413e-b571-e52d252eb3c6'
+  AZURE_SERVICE_CONNECTION: 'azure-devops-connection'
 
 steps:
-- task: DockerInstaller@0
-  inputs:
-    dockerVersion: 'latest'
-  displayName: 'Install Docker'
+  # Step 1: Login to Azure
+  - task: AzureCLI@2
+    displayName: 'Login to Azure'
+    inputs:
+      azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az account set --subscription '$(AZURE_SUBSCRIPTION_ID)'
 
-- script: |
-    docker login $(containerRegistry) -u $(containerRegistryUsername) -p $(containerRegistryPassword)
-  displayName: 'Docker Login to ACR'
+  # Step 2: Create Azure Container Registry if it doesn't exist
+  - task: AzureCLI@2
+    displayName: 'Create Azure Container Registry'
+    inputs:
+      azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az acr show --name $(ACR_NAME) --resource-group $(RESOURCE_GROUP) || \
+        az acr create --resource-group $(RESOURCE_GROUP) --name $(ACR_NAME) --sku Basic
 
-- script: |
-    docker build -t $(containerRegistry)/$(imageName):$(Build.BuildId) ml-project
-  displayName: 'Build Docker Image'
+  # Step 3: Build Docker image
+  - task: Docker@2
+    displayName: 'Build Docker Image'
+    inputs:
+      containerRegistry: '$(AZURE_SERVICE_CONNECTION)'
+      repository: '$(REPOSITORY_NAME)'
+      dockerfile: '**/Dockerfile'
+      tags: '$(IMAGE_TAG)'
 
-- script: |
-    docker push $(containerRegistry)/$(imageName):$(Build.BuildId)
-  displayName: 'Push Docker Image to ACR'
+  # Step 4: Push Docker image to ACR
+  - task: Docker@2
+    displayName: 'Push Docker Image to ACR'
+    inputs:
+      containerRegistry: '$(AZURE_SERVICE_CONNECTION)'
+      repository: '$(REPOSITORY_NAME)'
+      command: 'push'
+      tags: '$(IMAGE_TAG)'
 
-- task: AzureCLI@2
-  inputs:
-    azureSubscription: '$(azureSubscription)'
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      az container create \
-        --resource-group $(resource-group) \
-        --name test-api-container-instance \
-        --image $(containerRegistry)/$(imageName):$(Build.BuildId) \
-        --registry-login-server $(containerRegistry) \
-        --registry-username $(containerRegistryUsername) \
-        --registry-password $(containerRegistryPassword) \
-        --ports 8000
-  displayName: 'Deploy to Azure Container Instance'
-
+  # Step 5: Deploy image to Azure Container Instances
+  - task: AzureCLI@2
+    displayName: 'Deploy to Azure Container Instances'
+    inputs:
+      azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+      scriptType: 'bash'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az container create \
+          --resource-group $(RESOURCE_GROUP) \
+          --name $(REPOSITORY_NAME)-container \
+          --image $(ACR_NAME).azurecr.io/$(REPOSITORY_NAME):$(IMAGE_TAG) \
+          --cpu 1 \
+          --memory 1 \
+          --registry-login-server $(ACR_NAME).azurecr.io \
+          --registry-username $(az acr credential show --name $(ACR_NAME) --query username -o tsv) \
+          --registry-password $(az acr credential show --name $(ACR_NAME) --query passwords[0].value -o tsv)
