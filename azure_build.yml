@@ -7,13 +7,13 @@ pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  RESOURCE_GROUP: 'dmc-group'
-  ACR_NAME: 'testcontainerdmc'
-  REPOSITORY_NAME: 'my-test-api'
+  RESOURCE_GROUP: '$(RESOURCE_GROUP)' #'dmc-group'
+  ACR_NAME: '$(ACR_NAME)' #'testcontainerdmc'
+  REPOSITORY_NAME: '$(REPOSITORY_NAME)' #'my-test-api'
   IMAGE_TAG: 'latest'
-  AZURE_SUBSCRIPTION_ID: '37520400-632e-413e-b571-e52d252eb3c6'
-  AZURE_SERVICE_CONNECTION: 'azure-devops-connection'
-  ACR_DOCKER_SERVICE_CONNECTION: 'docker-registry-service-connection'
+  AZURE_SUBSCRIPTION_ID: '$(AZURE_SUBSCRIPTION_ID)' #'37520400-632e-413e-b571-e52d252eb3c6'
+  AZURE_SERVICE_CONNECTION: '$(AZURE_SERVICE_CONNECTION)' #'azure-devops-connection'
+  ACR_DOCKER_SERVICE_CONNECTION: '$(ACR_DOCKER_SERVICE_CONNECTION)' #'docker-registry-service-connection'
 
 steps:
   # Step 1: Login to Azure
