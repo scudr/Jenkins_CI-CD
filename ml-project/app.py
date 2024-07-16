@@ -14,7 +14,7 @@ app = FastAPI()
 @app.get("/")
 def home():
     # Retorna un simple mensaje de texto
-    return 'Hola mundo: Model API - VERSION 2'
+    return 'Hola mundo: Model API - VERSION 1'
 
 # Definir un endpoint para manejar la subida de archivos Excel
 @app.post("/upload-excel")
